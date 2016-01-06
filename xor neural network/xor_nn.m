@@ -1,15 +1,15 @@
 # function to calculate and learn XOR solution
 
-function [L1W_new, L2W_new] = xor_nn(XOR, L1_weights, L2_weights, init_w=0, learn=0, alpha=0.01)
+function [THETA1_new, THETA2_new] = xor_nn(XOR, THETA1, THETA2, init_w=0, learn=0, alpha=0.01)
   # first see if this is an initialze run
   if (init_w == 1)
-     L1_weights = 2*rand(2,3) - 1;
-     L2_weights = 2*rand(1,3) - 1;
+     THETA1 = 2*rand(2,3) - 1;
+     THETA2 = 2*rand(1,3) - 1;
   endif
   
   # accumulators for the partial derivatives
-  L1_delta_acc = zeros(size(L1_weights));
-  L2_delta_acc = zeros(size(L2_weights));
+  T1_DELTA = zeros(size(THETA1));
+  T2_DELTA = zeros(size(THETA2));
   
   # run through the training set
   m = 0;
@@ -21,47 +21,47 @@ function [L1W_new, L2W_new] = xor_nn(XOR, L1_weights, L2_weights, init_w=0, lear
   
   for i = 1:rows(XOR)
     # do the forward propagation
-    L1_outputs = [1; XOR(i,1:2)'];
+    A1 = [1; XOR(i,1:2)'];
     
-    L2_inputs = L1_weights * L1_outputs;
+    Z2 = THETA1 * A1;
     
-    L2_outputs = [1; sigmoid(L2_inputs)];
+    A2 = [1; sigmoid(Z2)];
     
-    L3_inputs = L2_weights * L2_outputs;
+    Z3 = THETA2 * A2;
     
-    L3_outputs = sigmoid(L3_inputs);
+    h = sigmoid(Z3);
     
-    J = J + ( XOR(i,3) * log(L3_outputs) ) + ( (1 - XOR(i,3)) * log(1 - L3_outputs) );
+    J = J + ( XOR(i,3) * log(h) ) + ( (1 - XOR(i,3)) * log(1 - h) );
     
     m = m + 1;
 
     # now update the deltas if we have to learn from this case
     if (learn == 1)
-      L3_delta = L3_outputs - XOR(i,3);
+      delta3 = h - XOR(i,3);
       
-      L2_delta = ((L2_weights' * L3_delta) .* (L2_outputs .* (1 - L2_outputs)))(2:end);
+      delta2 = ((THETA2' * delta3) .* (A2 .* (1 - A2)))(2:end);
       
-      # is no L1 delta :)
+      # is no L1 delta
       
       # add the deltas for this training example to the accumulators
-      L2_delta_acc = L2_delta_acc + (L3_delta * L2_outputs');
-      L1_delta_acc = L1_delta_acc + (L2_delta * L1_outputs');
+      T2_DELTA = T2_DELTA + (delta3 * A2');
+      T1_DELTA = T1_DELTA + (delta2 * A1');
     else
-      disp(L3_outputs);
+      disp('Hypothesis for '), disp(XOR(i,1:2)), disp('is '), disp(h);
     endif
   endfor
   
   J = J / -m;
   
   if (learn==1)
-    L1_weights = L1_weights - (alpha * (L1_delta_acc / m));
-    L2_weights = L2_weights - (alpha * (L2_delta_acc / m));
+    THETA1 = THETA1 - (alpha * (T1_DELTA / m));
+    THETA2 = THETA2 - (alpha * (T2_DELTA / m));
   else
     disp('J: '), disp(J);
   endif
   
-  L1W_new = L1_weights;
-  L2W_new = L2_weights;
+  THETA1_new = THETA1;
+  THETA2_new = THETA2;
   
 endfunction
       
